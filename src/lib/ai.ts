@@ -1,5 +1,8 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import OpenAI from 'openai';
+import Database from 'better-sqlite3';
+import path from 'path';
+import fs from 'fs';
 
 type Provider = 'gemini' | 'openai';
 
@@ -7,18 +10,46 @@ interface AiResponse {
   text: string;
 }
 
+function getDbSetting(key: string): string | undefined {
+  try {
+    const dbPath = path.join(process.cwd(), 'data', 'job-search.db');
+    if (!fs.existsSync(dbPath)) return undefined;
+    const db = new Database(dbPath, { readonly: true });
+    try {
+      const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(key) as { value: string } | undefined;
+      return row?.value || undefined;
+    } catch {
+      return undefined;
+    } finally {
+      db.close();
+    }
+  } catch {
+    return undefined;
+  }
+}
+
 function getProvider(): { provider: Provider; geminiKey?: string; openaiKey?: string } {
-  const geminiKey = process.env.GEMINI_API_KEY;
-  const openaiKey = process.env.OPENAI_API_KEY;
+  // DB keys take priority over env vars
+  const geminiKey = getDbSetting('GEMINI_API_KEY') || process.env.GEMINI_API_KEY;
+  const openaiKey = getDbSetting('OPENAI_API_KEY') || process.env.OPENAI_API_KEY;
+
+  // Check if user explicitly chose a provider
+  const preferredProvider = getDbSetting('AI_PROVIDER');
+  if (preferredProvider === 'openai' && openaiKey) return { provider: 'openai', openaiKey };
+  if (preferredProvider === 'gemini' && geminiKey) return { provider: 'gemini', geminiKey };
 
   if (geminiKey) return { provider: 'gemini', geminiKey };
   if (openaiKey) return { provider: 'openai', openaiKey };
-  throw new Error('GEMINI_API_KEY 또는 OPENAI_API_KEY를 .env.local에 설정해주세요');
+  throw new Error('GEMINI_API_KEY 또는 OPENAI_API_KEY를 설정 페이지에서 입력해주세요');
 }
 
 export function getProviderName(): string {
-  const { provider } = getProvider();
-  return provider === 'gemini' ? 'Gemini' : 'OpenAI';
+  try {
+    const { provider } = getProvider();
+    return provider === 'gemini' ? 'Gemini' : 'OpenAI';
+  } catch {
+    return 'Not configured';
+  }
 }
 
 export async function generateText(prompt: string): Promise<AiResponse> {

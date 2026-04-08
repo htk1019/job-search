@@ -1,5 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateText } from '@/lib/ai';
+import Database from 'better-sqlite3';
+import path from 'path';
+import fs from 'fs';
+
+function getDbSetting(key: string): string | undefined {
+  try {
+    const dbPath = path.join(process.cwd(), 'data', 'job-search.db');
+    if (!fs.existsSync(dbPath)) return undefined;
+    const db = new Database(dbPath, { readonly: true });
+    try {
+      const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(key) as { value: string } | undefined;
+      return row?.value || undefined;
+    } catch { return undefined; }
+    finally { db.close(); }
+  } catch { return undefined; }
+}
 
 interface JobResult {
   id: string;
@@ -37,8 +53,8 @@ async function translateToEnglish(koreanText: string): Promise<string> {
 }
 
 async function searchAdzuna(q: string): Promise<JobResult[]> {
-  const appId = process.env.ADZUNA_APP_ID;
-  const appKey = process.env.ADZUNA_API_KEY;
+  const appId = getDbSetting('ADZUNA_APP_ID') || process.env.ADZUNA_APP_ID;
+  const appKey = getDbSetting('ADZUNA_API_KEY') || process.env.ADZUNA_API_KEY;
   if (!appId || !appKey) return [];
 
   try {
