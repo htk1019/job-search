@@ -44,21 +44,23 @@ function hasKorean(text: string): boolean {
 async function translateQuery(text: string, targetLang: 'en' | 'ko'): Promise<string> {
   try {
     const instruction = targetLang === 'en'
-      ? `Translate this Korean job search keyword to English for searching on international job boards (LinkedIn, eFinancialCareers, etc).
-Rules:
-- Use the most common English job title/keyword equivalent
-- Keep financial/tech jargon as-is (퀀트→quant, 개발자→developer)
-- Return ONLY the English keyword(s), nothing else.`
-      : `Translate this English job search keyword to Korean for searching on Korean job boards (사람인, 원티드, 잡코리아).
-Rules:
-- Use the most common Korean job title/keyword equivalent actually used on Korean job sites
-- Keep technical terms that Koreans commonly search in English as-is (e.g. "quant" stays "퀀트", "developer" can be "개발자")
-- "equity quant" → "주식 퀀트" or "Equity 퀀트"
-- "data engineer" → "데이터 엔지니어"
-- "machine learning" → "머신러닝"
-- Return ONLY the Korean keyword(s), nothing else.`;
-    const result = await generateText(`${instruction}\n\nKeyword: ${text}`);
-    return result.text.trim().replace(/^["']|["']$/g, '');
+      ? `Translate this Korean job search keyword to a single English search query for job boards.
+Return exactly ONE search query, no alternatives, no commas, no "or".
+Examples: 퀀트 → quant, 데이터 엔지니어 → data engineer, 주식 퀀트 → equity quant`
+      : `Translate this English job search keyword to a single Korean search query for Korean job boards (사람인, 원티드).
+Return exactly ONE search query, no alternatives, no commas, no "or".
+Use terms that Koreans actually search on job sites.
+Examples: equity quant → 퀀트, data engineer → 데이터 엔지니어, machine learning engineer → 머신러닝 엔지니어, frontend developer → 프론트엔드 개발자`;
+    const result = await generateText(`${instruction}\n\nKeyword: ${text}\n\nReturn ONLY the single translated keyword:`);
+    // Clean up: take only first line, remove quotes, commas, alternatives
+    const cleaned = result.text.trim()
+      .split('\n')[0]
+      .split(',')[0]
+      .split(' or ')[0]
+      .split(' 또는 ')[0]
+      .replace(/^["'`]|["'`]$/g, '')
+      .trim();
+    return cleaned || text;
   } catch {
     return text;
   }
