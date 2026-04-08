@@ -26,11 +26,11 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-sm">{t('geminiApiKey')}</p>
-                <p className="text-xs text-muted-foreground">{t('geminiApiDesc')}</p>
+                <p className="font-medium text-sm">AI Provider</p>
+                <p className="text-xs text-muted-foreground">Gemini 또는 OpenAI 중 하나를 설정</p>
               </div>
               <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                {t('configured')}
+                Gemini / OpenAI
               </Badge>
             </div>
             <div className="flex items-center justify-between">
@@ -50,16 +50,32 @@ export default function SettingsPage() {
                 {t('configInstructions')} <code className="bg-background px-1 rounded">.env.local</code> {t('configFile')}
               </p>
               <pre className="mt-2 bg-background p-2 rounded text-xs overflow-x-auto">
-{`GEMINI_API_KEY=your-key-here
+{`# AI Provider - 둘 중 하나만 설정 (Gemini 우선)
+GEMINI_API_KEY=your-gemini-key
+# 또는
+OPENAI_API_KEY=sk-your-openai-key
+
+# Gemini: gemini-2.0-flash 모델 사용
+# OpenAI: gpt-4.1-mini 모델 사용
+
+# Job Search (선택사항)
 ADZUNA_APP_ID=your-app-id
 ADZUNA_API_KEY=your-api-key`}
               </pre>
-              <p className="text-muted-foreground mt-2">
-                {t('getFreeKey')}{' '}
-                <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                  Google AI Studio
-                </a>
-              </p>
+              <div className="mt-2 space-y-1 text-muted-foreground">
+                <p>
+                  Gemini API 키:{' '}
+                  <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                    Google AI Studio
+                  </a>
+                </p>
+                <p>
+                  OpenAI API 키:{' '}
+                  <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                    OpenAI Platform
+                  </a>
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>

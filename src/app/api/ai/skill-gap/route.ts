@@ -1,5 +1,5 @@
 import { getDb } from '@/lib/db';
-import { getModel } from '@/lib/gemini';
+import { generateText } from '@/lib/ai';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -17,7 +17,6 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const model = getModel();
     const prompt = `You are an expert career development advisor. Analyze the skill gap between the candidate's current profile and the target job.
 
 CANDIDATE'S RESUME:
@@ -41,8 +40,8 @@ Provide a detailed skill gap analysis:
 
 Be specific with resource recommendations (actual course names, platforms, certifications).`;
 
-    const result = await model.generateContent(prompt);
-    const output = result.response.text();
+    const result = await generateText(prompt);
+    const output = result.text;
 
     const stmt = db.prepare("INSERT INTO ai_outputs (type, input_data, output) VALUES ('skill_gap', ?, ?)");
     stmt.run(JSON.stringify({ resume_id }), output);

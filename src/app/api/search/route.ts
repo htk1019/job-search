@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getModel } from '@/lib/gemini';
+import { generateText } from '@/lib/ai';
 
 interface JobResult {
   id: string;
@@ -27,11 +27,10 @@ function hasKorean(text: string): boolean {
 // Translate Korean to English via Gemini
 async function translateToEnglish(koreanText: string): Promise<string> {
   try {
-    const model = getModel();
-    const result = await model.generateContent(
+    const result = await generateText(
       `Translate this Korean job search keyword to the most common English equivalent used in job postings. Return ONLY the English keyword(s), nothing else.\n\nKorean: ${koreanText}`
     );
-    return result.response.text().trim();
+    return result.text.trim();
   } catch {
     return koreanText;
   }

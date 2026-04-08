@@ -1,5 +1,5 @@
 import { getDb } from '@/lib/db';
-import { getModel } from '@/lib/gemini';
+import { generateJson } from '@/lib/ai';
 import { NextResponse } from 'next/server';
 
 export async function POST() {
@@ -11,20 +11,16 @@ export async function POST() {
   }
 
   try {
-    // Step 1: Extract search keywords from resume using Gemini
-    const model = getModel();
-    const keywordResult = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: `이 이력서에서 채용 검색에 사용할 핵심 키워드 3개를 추출해주세요. 한국어 1개, 영어 2개로 구성하세요.
+    // Step 1: Extract search keywords from resume using AI
+    const keywordResult = await generateJson(`이 이력서에서 채용 검색에 사용할 핵심 키워드 3개를 추출해주세요. 한국어 1개, 영어 2개로 구성하세요.
 
 이력서:
 ${resume.content.substring(0, 3000)}
 
 JSON 형식으로 반환:
-{"keywords": ["한국어키워드", "english_keyword1", "english_keyword2"]}` }] }],
-      generationConfig: { responseMimeType: 'application/json' },
-    });
+{"keywords": ["한국어키워드", "english_keyword1", "english_keyword2"]}`);
 
-    const { keywords } = JSON.parse(keywordResult.response.text());
+    const { keywords } = JSON.parse(keywordResult.text);
 
     // Step 2: Search with each keyword
     const allResults: Array<{
@@ -73,12 +69,8 @@ ${toAnalyze.map((j, i) => `${i + 1}. ${j.title} @ ${j.company} (${j.location})`)
 
 높은 점수부터 정렬해서 반환하세요.`;
 
-    const scoreResult = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: batchPrompt }] }],
-      generationConfig: { responseMimeType: 'application/json' },
-    });
-
-    const scores = JSON.parse(scoreResult.response.text()) as Array<{ index: number; score: number; reason: string }>;
+    const scoreResult = await generateJson(batchPrompt);
+    const scores = JSON.parse(scoreResult.text) as Array<{ index: number; score: number; reason: string }>;
 
     for (const s of scores) {
       const job = toAnalyze[s.index - 1];

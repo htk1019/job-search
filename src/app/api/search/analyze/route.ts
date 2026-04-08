@@ -1,5 +1,5 @@
 import { getDb } from '@/lib/db';
-import { getModel } from '@/lib/gemini';
+import { generateJson } from '@/lib/ai';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -11,8 +11,6 @@ export async function POST(request: NextRequest) {
   const resume = db.prepare('SELECT content FROM resumes ORDER BY created_at DESC LIMIT 1').get() as { content: string } | undefined;
 
   try {
-    const model = getModel();
-
     // Try to fetch job page for more details
     let pageContent = '';
     if (url && !url.includes('adzuna')) {
@@ -58,12 +56,8 @@ ${resume ? `\n지원자 이력서:\n${resume.content}` : ''}
 한국어로 작성하되, 기술 용어는 영어 그대로 사용해도 됩니다.
 JSON만 반환하세요.`;
 
-    const result = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: { responseMimeType: 'application/json' },
-    });
-
-    const analysis = JSON.parse(result.response.text());
+    const result = await generateJson(prompt);
+    const analysis = JSON.parse(result.text);
     return NextResponse.json(analysis);
   } catch (error) {
     return NextResponse.json(

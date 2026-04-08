@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { useLocale } from '@/components/layout/locale-context';
 import { format } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
+import { downloadMarkdownAsPdf } from '@/lib/pdf-download';
 
 interface ResumeInfo {
   id: number;
@@ -143,44 +144,8 @@ export default function ResumePage() {
     finally { setLoadingRecs(false); }
   };
 
-  const downloadPdf = async (text: string) => {
-    const { jsPDF } = await import('jspdf');
-    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-    const margin = 15;
-    const maxWidth = doc.internal.pageSize.getWidth() - margin * 2;
-    const lineHeight = 6;
-    let y = margin;
-
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-
-    // Simple markdown-to-text for PDF
-    const cleaned = text
-      .replace(/\*\*(.*?)\*\*/g, '$1')
-      .replace(/\*(.*?)\*/g, '$1')
-      .replace(/^#+\s*/gm, '')
-      .replace(/^[-*]\s/gm, '• ');
-
-    for (const line of cleaned.split('\n')) {
-      if (y > doc.internal.pageSize.getHeight() - margin) { doc.addPage(); y = margin; }
-      const trimmed = line.trim();
-      if (trimmed.match(/^[A-Z\s]{4,}$/) || trimmed.match(/^[가-힣\s]{3,}$/)) {
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(11);
-        y += 2;
-      } else {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-      }
-      const wrapped = doc.splitTextToSize(trimmed || ' ', maxWidth);
-      for (const wl of wrapped) {
-        if (y > doc.internal.pageSize.getHeight() - margin) { doc.addPage(); y = margin; }
-        doc.text(wl, margin, y);
-        y += lineHeight;
-      }
-    }
-    doc.save(`resume_${company || 'tailored'}.pdf`);
-    toast.success('PDF 다운로드 완료');
+  const downloadPdf = (text: string) => {
+    downloadMarkdownAsPdf(text, `resume_${company || 'tailored'}.pdf`);
   };
 
   const getScoreColor = (score: number) => {

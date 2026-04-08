@@ -1,5 +1,5 @@
 import { getDb } from '@/lib/db';
-import { getModel } from '@/lib/gemini';
+import { generateText } from '@/lib/ai';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -18,7 +18,6 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const model = getModel();
     const prompt = `You are an expert career coach and professional writer. Write a compelling cover letter for the following job application.
 
 ${resumeText ? `CANDIDATE'S RESUME:\n${resumeText}\n` : ''}
@@ -38,8 +37,8 @@ Write a professional, personalized cover letter that:
 
 Tone: Professional yet personable. Avoid generic phrases.`;
 
-    const result = await model.generateContent(prompt);
-    const output = result.response.text();
+    const result = await generateText(prompt);
+    const output = result.text;
 
     const stmt = db.prepare("INSERT INTO ai_outputs (type, input_data, output) VALUES ('cover_letter', ?, ?)");
     stmt.run(JSON.stringify({ resume_id, company, position }), output);

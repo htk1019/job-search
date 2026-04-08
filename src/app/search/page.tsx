@@ -23,6 +23,7 @@ import { Search, Loader2, ExternalLink, Sparkles, Download, Copy, Check, FileTex
 import { toast } from 'sonner';
 import { useLocale } from '@/components/layout/locale-context';
 import ReactMarkdown from 'react-markdown';
+import { downloadMarkdownAsPdf } from '@/lib/pdf-download';
 
 interface JobResult {
   id: string;
@@ -170,58 +171,9 @@ export default function SearchPage() {
     }
   };
 
-  const downloadPdf = async (text: string, lang: string) => {
-    const { jsPDF } = await import('jspdf');
-    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 15;
-    const maxWidth = pageWidth - margin * 2;
-    const lineHeight = 6;
-    let y = margin;
-
-    // Title
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    const title = `${selectedJob?.title} - ${selectedJob?.company}`;
-    doc.text(title, margin, y);
-    y += lineHeight * 2;
-
-    // Content
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-
-    const lines = text.split('\n');
-    for (const line of lines) {
-      if (y > doc.internal.pageSize.getHeight() - margin) {
-        doc.addPage();
-        y = margin;
-      }
-
-      const trimmed = line.trim();
-      if (trimmed.match(/^[A-Z\s]{3,}$/) || trimmed.match(/^#{1,3}\s/) || trimmed.match(/^[가-힣\s]{2,}$/)) {
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(11);
-        y += 2;
-      } else {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-      }
-
-      const wrapped = doc.splitTextToSize(trimmed || ' ', maxWidth);
-      for (const wl of wrapped) {
-        if (y > doc.internal.pageSize.getHeight() - margin) {
-          doc.addPage();
-          y = margin;
-        }
-        doc.text(wl, margin, y);
-        y += lineHeight;
-      }
-    }
-
-    const filename = `resume_${lang}_${selectedJob?.company?.replace(/\s/g, '_')}.pdf`;
-    doc.save(filename);
-    toast.success('PDF 다운로드 완료');
+  const downloadPdf = (text: string, lang: string) => {
+    const filename = `resume_${lang}_${selectedJob?.company?.replace(/\s/g, '_') || 'tailored'}.pdf`;
+    downloadMarkdownAsPdf(text, filename);
   };
 
   const copyText = (text: string) => {
@@ -329,8 +281,8 @@ export default function SearchPage() {
           <p className="text-muted-foreground">검색 중...</p>
         </div>
       ) : filteredResults.length > 0 ? (
-        <div className="rounded-lg border overflow-hidden">
-          <Table>
+        <div className="rounded-lg border overflow-x-auto">
+          <Table className="min-w-[900px]">
             <TableHeader>
               <TableRow className="bg-muted/50">
                 <TableHead className="w-[40px] text-center">#</TableHead>
@@ -340,7 +292,7 @@ export default function SearchPage() {
                 <TableHead>지역</TableHead>
                 <TableHead>경력</TableHead>
                 <TableHead>마감</TableHead>
-                <TableHead className="w-[60px]"></TableHead>
+                <TableHead className="w-[80px] text-center">분석</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -365,8 +317,8 @@ export default function SearchPage() {
                   <TableCell className="text-sm text-muted-foreground">{job.location || '-'}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{job.experience || '-'}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{job.deadline || '-'}</TableCell>
-                  <TableCell>
-                    <Button variant="outline" size="sm" className="text-xs rounded-full" onClick={() => openDetail(job)}>상세</Button>
+                  <TableCell className="text-center">
+                    <Button size="sm" className="text-xs rounded-full bg-indigo-600 hover:bg-indigo-700 text-white px-4" onClick={() => openDetail(job)}>상세</Button>
                   </TableCell>
                 </TableRow>
               ))}

@@ -1,5 +1,5 @@
 import { getDb } from '@/lib/db';
-import { getModel } from '@/lib/gemini';
+import { generateText } from '@/lib/ai';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -29,7 +29,6 @@ export async function POST(request: NextRequest) {
     : 'Write the resume in English.';
 
   try {
-    const model = getModel();
     const prompt = `You are an expert resume writer and career coach. Rewrite the following resume to be perfectly tailored for the specific job and company below.
 
 ORIGINAL RESUME:
@@ -54,8 +53,8 @@ Instructions:
 Use clear section headers: PROFESSIONAL SUMMARY, CORE COMPETENCIES, EXPERIENCE, EDUCATION, SKILLS, CERTIFICATIONS.
 Format the resume cleanly with bullet points for achievements.`;
 
-    const result = await model.generateContent(prompt);
-    const rewrittenResume = result.response.text();
+    const result = await generateText(prompt);
+    const rewrittenResume = result.text;
 
     const stmt = db.prepare(
       "INSERT INTO ai_outputs (type, input_data, output) VALUES ('resume_rewrite', ?, ?)"

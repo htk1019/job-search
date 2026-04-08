@@ -1,5 +1,5 @@
 import { getDb } from '@/lib/db';
-import { getModel } from '@/lib/gemini';
+import { generateJson } from '@/lib/ai';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -27,7 +27,6 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const model = getModel();
     const prompt = `You are an expert recruiter and resume analyst. Analyze how well the following resume matches the job description.
 
 RESUME:
@@ -47,14 +46,8 @@ Provide your analysis as a JSON object with this exact structure:
 
 Be thorough and specific. Return ONLY valid JSON, no markdown or extra text.`;
 
-    const result = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: {
-        responseMimeType: 'application/json',
-      },
-    });
-
-    const responseText = result.response.text();
+    const result = await generateJson(prompt);
+    const responseText = result.text;
     const analysis = JSON.parse(responseText);
 
     // Save to database

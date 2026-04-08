@@ -1,5 +1,5 @@
 import { getDb } from '@/lib/db';
-import { getModel } from '@/lib/gemini';
+import { generateText } from '@/lib/ai';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -11,7 +11,6 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const model = getModel();
     const prompt = `You are an expert interview coach. Generate comprehensive interview preparation materials for the following position.
 
 POSITION: ${position || 'Not specified'}
@@ -34,8 +33,8 @@ Generate:
 
 Format with clear headers and numbered lists.`;
 
-    const result = await model.generateContent(prompt);
-    const output = result.response.text();
+    const result = await generateText(prompt);
+    const output = result.text;
 
     const db = getDb();
     const stmt = db.prepare("INSERT INTO ai_outputs (type, input_data, output) VALUES ('interview_prep', ?, ?)");
