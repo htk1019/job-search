@@ -3,7 +3,9 @@
     "allow": [
       "Bash(npm --version)",
       "Bash(npm view:*)",
-      "Bash(npx create-next-app@latest:*)"
+      "Bash(npx create-next-app@latest:*)",
+      "Bash(npm install:*)",
+      "Bash(npx shadcn@latest:*)"
     ]
   }
 }
