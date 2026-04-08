@@ -55,8 +55,8 @@ GEMINI_API_KEY=your-gemini-key
 # 또는
 OPENAI_API_KEY=sk-your-openai-key
 
-# Gemini: gemini-2.0-flash 모델 사용
-# OpenAI: gpt-4.1-mini 모델 사용
+# Gemini: gemini-3-flash-preview 모델 사용
+# OpenAI: gpt-5.4-mini 모델 사용
 
 # Job Search (선택사항)
 ADZUNA_APP_ID=your-app-id

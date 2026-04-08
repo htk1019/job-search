@@ -26,13 +26,13 @@ export async function generateText(prompt: string): Promise<AiResponse> {
 
   if (provider === 'gemini') {
     const genAI = new GoogleGenerativeAI(geminiKey!);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
     const result = await model.generateContent(prompt);
     return { text: result.response.text() };
   } else {
     const openai = new OpenAI({ apiKey: openaiKey! });
     const result = await openai.chat.completions.create({
-      model: 'gpt-4.1-mini',
+      model: 'gpt-5.4-mini',
       messages: [{ role: 'user', content: prompt }],
     });
     return { text: result.choices[0]?.message?.content || '' };
@@ -44,7 +44,7 @@ export async function generateJson(prompt: string): Promise<AiResponse> {
 
   if (provider === 'gemini') {
     const genAI = new GoogleGenerativeAI(geminiKey!);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
     const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: { responseMimeType: 'application/json' },
@@ -53,7 +53,7 @@ export async function generateJson(prompt: string): Promise<AiResponse> {
   } else {
     const openai = new OpenAI({ apiKey: openaiKey! });
     const result = await openai.chat.completions.create({
-      model: 'gpt-4.1-mini',
+      model: 'gpt-5.4-mini',
       messages: [{ role: 'user', content: prompt + '\n\nReturn ONLY valid JSON, no markdown or extra text.' }],
       response_format: { type: 'json_object' },
     });
