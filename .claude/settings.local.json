@@ -5,7 +5,18 @@
       "Bash(npm view:*)",
       "Bash(npx create-next-app@latest:*)",
       "Bash(npm install:*)",
-      "Bash(npx shadcn@latest:*)"
+      "Bash(npx shadcn@latest:*)",
+      "Bash(npx next:*)",
+      "Bash(node:*)",
+      "Bash(npm run:*)",
+      "Bash(npx kill-port:*)",
+      "Bash(taskkill //F //FI \"WINDOWTITLE eq next*\")",
+      "Bash(netstat -ano)",
+      "Bash(gh auth:*)",
+      "Bash(winget install:*)",
+      "Bash(where gh:*)",
+      "Bash(git config:*)",
+      "Bash(git add:*)"
     ]
   }
 }
